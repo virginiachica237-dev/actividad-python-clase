@@ -1,61 +1,32 @@
-##Restaurante App
- Descripción
-Aplicación en Python que simula la gestión de un restaurante.  
-Permite agregar productos al menú, registrar clientes y asignar pedidos.  
-Se utiliza programación orientada a objetos, constructores, decoradores y una clase de servicio.
-## Estructura del proyecto
-restaurante_app/
-├── modelos/
-│   ├── init.py
-│   ├── producto.py
-│   └── cliente.py
-├── servicios/
-│   ├── init.py
-│   └── restaurante.py
-└── main.py
-##Características
-- Uso de **constructores** en las clases `Producto` y `Cliente`.
-- Aplicación de **decoradores** (`@property`, `@setter`) para manejar atributos.
-- Creación dinámica de objetos mediante un **menú interactivo**.
-- Clase de servicio `Restaurante` que gestiona menú y clientes.
-- Ejecución principal desde `main.py`.
- Ejecución
-Para correr la aplicación:
-```bash
-python main.py
-Menú del restaurante:
-Pizza - $8.5
-Hamburguesa - $5.0
-Ensalada - $4.0
-Clientes registrados:
-Cliente: Elvira, Pedidos: ['Pizza', 'Ensalada']
-Cliente: Carlos, Pedidos: ['Hamburguesa ']
-def main():
-    restaurante = Restaurante()
-    while True:
-        print("\n--- Menú Principal ---")
-        print("1. Agregar producto")
-        print("2. Registrar cliente")
-        print("3. Mostrar menú")
-        print("4. Salir")
+# Restaurante App
+**Estudiante:** Elvira Virginia Chica Angulo
 
-        opcion = input("Elige una opción: ")
+## 📖 Descripción breve
+Este sistema permite administrar usuarios y productos de un restaurante mediante un menú interactivo en consola. Se implementa programación orientada a objetos y estructuras de datos en Python para gestionar registros y operaciones básicas como registrar, buscar, actualizar, eliminar y listar.
 
-        if opcion == "1":
-            nombre = input("Nombre del producto: ")
-            precio = float(input("Precio: "))
-            restaurante.agregar_producto(nombre, precio)
-        elif opcion == "2":
-            nombre = input("Nombre del cliente: ")
-            restaurante.registrar_cliente(nombre)
-        elif opcion == "3":
-            restaurante.mostrar_menu()
-        elif opcion == "4":
-            break
-        else:
-            print("Opción inválida")
+## 📂 Estructura del proyecto
+- **modelos/**
+  - `usuario.py`: clase Usuario (identificación, nombre, correo).
+  - `producto.py`: clase Producto (código, nombre, precio).
+- **servicios/**
+  - `restaurante.py`: clase Restaurante (administra colecciones y operaciones).
+- **main.py**: menú principal con interacción por consola.
+- **README.md**: documentación del proyecto.
 
-## Autor
-Elvira [Chica]
+## 🧩 Responsabilidad de los componentes
+- **Usuario**: representa clientes o personas con identificación, nombre y correo.
+- **Producto**: representa los productos del restaurante con código, nombre y precio.
+- **Restaurante**: administra las colecciones de usuarios y productos, con operaciones de registrar, buscar, actualizar, eliminar y listar.
+- **main.py**: gestiona la interacción con el usuario mediante un menú.
 
+## 🔑 Uso de estructuras de datos
+- **List**: colecciones dinámicas de usuarios y productos, permiten agregar, eliminar y recorrer objetos.  
+- **Tuple**: menú principal, ya que sus opciones son estables y no cambian.  
+- **Dict**: relación opción → función en el menú, facilita la ejecución según la elección del usuario.  
+- **Set**: categorías únicas de productos o identificaciones, evita duplicados.
 
+## ▶️ Instrucciones de ejecución
+1. Abrir la terminal en la carpeta del proyecto.  
+2. Ejecutar el comando:  
+   ```bash
+   python main.py
