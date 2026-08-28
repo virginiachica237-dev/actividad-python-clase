@@ -1,8 +1,21 @@
 class Usuario:
-    def __init__(self, identificacion: str, nombre: str, correo: str):
-        self.identificacion = identificacion
+    def __init__(self, id_usuario, nombre, tipo="cliente"):
+        self.id_usuario = id_usuario
         self.nombre = nombre
-        self.correo = correo
+        self.tipo = tipo
 
-    def __str__(self) -> str:
-        return f"{self.identificacion} - {self.nombre} ({self.correo})"
+    def to_dict(self):
+        return {
+            "id_usuario": self.id_usuario,
+            "nombre": self.nombre,
+            "tipo": self.tipo
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            id_usuario=data["id_usuario"],
+            nombre=data["nombre"],
+            tipo=data.get("tipo", "cliente")
+        )
+        
