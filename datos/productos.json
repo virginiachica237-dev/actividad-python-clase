@@ -1,0 +1,17 @@
+[
+    {
+        "nombre": "Hamburguesa",
+        "precio": 5.50,
+        "stock": 20
+    },
+    {
+        "nombre": "Papas Fritas",
+        "precio": 2.50,
+        "stock": 50
+    },
+    {
+        "nombre": "Refresco",
+        "precio": 1.50,
+        "stock": 40
+    }
+]
