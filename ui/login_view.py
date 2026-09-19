@@ -1,36 +1,44 @@
 import tkinter as tk
 from tkinter import messagebox
+from ui.main_view import MainView
 
-class LoginView(tk.Frame):
-    def __init__(self, parent, on_login_success, servicio):
-        super().__init__(parent)
-        self.on_login_success = on_login_success
+class LoginView:
+    def __init__(self, parent, servicio):
+        self.parent = parent
         self.servicio = servicio
-
-        self.configure(bg="#f0f0f0")
-
+        
+        # Ventana de Login
+        self.ventana = tk.Toplevel(parent)
+        self.ventana.title("Iniciar Sesión - Restaurante")
+        self.ventana.geometry("350x250")
+        self.ventana.config(bg="#f0f0f0")
+        
         # Título
-        tk.Label(self, text="LOGIN - RESTAURANTE", font=("Arial", 16, "bold"), bg="#f0f0f0").pack(pady=20)
-
-        # Campo Usuario
-        tk.Label(self, text="Usuario:", bg="#f0f0f0", font=("Arial", 11)).pack()
-        self.entry_usuario = tk.Entry(self, font=("Arial", 11))
-        self.entry_usuario.pack(pady=5)
-
-        # Campo Contraseña
-        tk.Label(self, text="Contraseña:", bg="#f0f0f0", font=("Arial", 11)).pack()
-        self.entry_password = tk.Entry(self, show="*", font=("Arial", 11))
-        self.entry_password.pack(pady=5)
-
-        # Botón Ingresar
-        tk.Button(self, text="Ingresar", command=self.verificar_credenciales, bg="#4CAF50", fg="white", font=("Arial", 11, "bold"), width=15).pack(pady=20)
-
-    def verificar_credenciales(self):
-        usuario = self.entry_usuario.get()
-        password = self.entry_password.get()
-
-        if self.servicio.validar_login(usuario, password):
-            messagebox.showinfo("Éxito", f"¡Bienvenido, {usuario}!")
-            self.on_login_success()
+        tk.Label(self.ventana, text="Bienvenido al Sistema", font=("Arial", 14, "bold"), bg="#f0f0f0").pack(pady=20)
+        
+        # Usuario
+        tk.Label(self.ventana, text="Usuario:", bg="#f0f0f0").pack(anchor="w", padx=40)
+        self.txt_usuario = tk.Entry(self.ventana, width=30)
+        self.txt_usuario.pack(pady=5, padx=40)
+        
+        # Contraseña
+        tk.Label(self.ventana, text="Contraseña:", bg="#f0f0f0").pack(anchor="w", padx=40)
+        self.txt_password = tk.Entry(self.ventana, width=30, show="*")
+        self.txt_password.pack(pady=5, padx=40)
+        
+        # Botón de ingreso
+        btn_login = tk.Button(self.ventana, text="Ingresar", bg="#4CAF50", fg="white", width=15, command=self.verificar_login)
+        btn_login.pack(pady=15)
+        
+    def verificar_login(self):
+        usuario = self.txt_usuario.get()
+        password = self.txt_password.get()
+        
+        # Validación sencilla o consulta al servicio
+        if usuario == "admin" and password == "1234":
+            messagebox.showinfo("Éxito", "¡Bienvenido al sistema!")
+            self.ventana.destroy()
+            # Abrimos la ventana principal pasándole el servicio
+            MainView(self.parent, self.servicio)
         else:
-            messagebox.showerror("Error", "Usuario o contraseña incorrectos.")
+            messagebox.showerror("Error", "Usuario o contraseña incorrectos")
