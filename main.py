@@ -1,20 +1,21 @@
-import tkinter as tk
-from servicios.restaurante_servicio import RestauranteServicio
-from ui.login_view import LoginView
+from ventas import Venta, listar_ventas
 
-def main():
-    # Instanciamos el servicio central (maneja los JSON de datos)
-    servicio = RestauranteServicio()
-    
-    # Creamos la ventana raíz de Tkinter pero la mantenemos oculta
-    root = tk.Tk()
-    root.withdraw()
-    
-    # Iniciamos el flujo mostrando la vista de Login
-    app = LoginView(root, servicio)
-    
-    # Mantenemos la aplicación corriendo
-    root.mainloop()
+while True:
+    print("1. Registrar venta")
+    print("2. Listar ventas")
+    print("3. Salir")
+    opcion = input("Elige una opción: ")
 
-if __name__ == "__main__":
-    main()
+    if opcion == "1":
+        cliente = input("Nombre del cliente: ")
+        producto = input("Producto: ")
+        cantidad = int(input("Cantidad: "))
+        venta = Venta(cliente, producto, cantidad)
+        venta.guardar()
+        print("Venta registrada correctamente.")
+    elif opcion == "2":
+        listar_ventas()
+    elif opcion == "3":
+        break
+    else:
+        print("Opción no válida.")
