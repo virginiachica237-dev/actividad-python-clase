@@ -1,125 +1,142 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import json
-import os
 
 class MainView:
     def __init__(self, parent, servicio):
         self.parent = parent
         self.servicio = servicio
         
-        # Ventana Principal
-        self.ventana = tk.Toplevel(parent)
-        self.ventana.title("Menú Principal - Restaurante")
-        self.ventana.geometry("650x500")
-        self.ventana.config(bg="#f0f0f0")
+        # Crear un contenedor principal dentro de la ventana raíz
+        self.frame_principal = ttk.Frame(self.parent, padding=10)
+        self.frame_principal.pack(fill="both", expand=True)
         
-        # Título
-        tk.Label(self.ventana, text="Gestión de Productos", font=("Arial", 14, "bold"), bg="#f0f0f0").pack(pady=10)
+        # Configurar columnas elásticas
+        self.frame_principal.columnconfigure(0, weight=1)
+        self.frame_principal.columnconfigure(1, weight=2)
+        self.frame_principal.rowconfigure(0, weight=1)
         
-        # Frame del Formulario
-        frame_form = tk.LabelFrame(self.ventana, text=" Formulario de Productos ", bg="#f0f0f0", font=("Arial", 10, "bold"))
-        frame_form.pack(fill="x", padx=20, pady=10)
-        
-        # Campos
-        tk.Label(frame_form, text="ID Producto:", bg="#f0f0f0").grid(row=0, column=0, sticky="w", padx=10, pady=5)
-        self.txt_id = tk.Entry(frame_form, width=25)
-        self.txt_id.grid(row=0, column=1, padx=10, pady=5)
-        
-        tk.Label(frame_form, text="Nombre:", bg="#f0f0f0").grid(row=1, column=0, sticky="w", padx=10, pady=5)
-        self.txt_nombre = tk.Entry(frame_form, width=25)
-        self.txt_nombre.grid(row=1, column=1, padx=10, pady=5)
-        
-        tk.Label(frame_form, text="Precio:", bg="#f0f0f0").grid(row=2, column=0, sticky="w", padx=10, pady=5)
-        self.txt_precio = tk.Entry(frame_form, width=25)
-        self.txt_precio.grid(row=2, column=1, padx=10, pady=5)
+        self._construir_ui()
+        self._refrescar_tabla()
 
-        tk.Label(frame_form, text="Stock:", bg="#f0f0f0").grid(row=3, column=0, sticky="w", padx=10, pady=5)
-        self.txt_stock = tk.Entry(frame_form, width=25)
-        self.txt_stock.grid(row=3, column=1, padx=10, pady=5)
+    def _construir_ui(self):
+        # --- PANEL IZQUIERDO: Formulario ---
+        frame_form = ttk.LabelFrame(self.frame_principal, text=" Registro / Edición de Usuarios ", padding=15)
+        frame_form.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         
-        # Botones de acción
-        frame_botones = tk.Frame(frame_form, bg="#f0f0f0")
-        frame_botones.grid(row=4, column=0, columnspan=2, pady=10)
+        ttk.Label(frame_form, text="Nombre de Usuario:").pack(anchor="w", pady=(0, 2))
+        self.txt_username = ttk.Entry(frame_form, font=("Segoe UI", 10))
+        self.txt_username.pack(fill="x", pady=(0, 12))
         
-        tk.Button(frame_botones, text="Registrar", bg="#4CAF50", fg="white", width=10, command=self.registrar_producto).pack(side="left", padx=5)
-        tk.Button(frame_botones, text="Limpiar", bg="#ff9800", fg="white", width=10, command=self.limpiar_campos).pack(side="left", padx=5)
+        ttk.Label(frame_form, text="Rol asignado:").pack(anchor="w", pady=(0, 2))
+        self.cb_rol = ttk.Combobox(frame_form, values=["Administrador", "Mesero", "Cajero", "Cocinero"], state="readonly")
+        self.cb_rol.pack(fill="x", pady=(0, 12))
         
-        # Tabla de Inventario
-        frame_tabla = tk.LabelFrame(self.ventana, text=" Inventario de Productos ", bg="#f0f0f0", font=("Arial", 10, "bold"))
-        frame_tabla.pack(fill="both", expand=True, padx=20, pady=10)
+        self.var_activo = tk.BooleanVar(value=True)
+        self.chk_activo = ttk.Checkbutton(frame_form, text="Usuario Habilitado / Activo", variable=self.var_activo)
+        self.chk_activo.pack(anchor="w", pady=(0, 20))
         
-        self.tabla = ttk.Treeview(frame_tabla, columns=("ID", "Nombre", "Precio", "Stock"), show="headings")
-        self.tabla.heading("ID", text="ID")
-        self.tabla.heading("Nombre", text="Nombre")
-        self.tabla.heading("Precio", text="Precio")
-        self.tabla.heading("Stock", text="Stock")
+        self.btn_guardar = ttk.Button(frame_form, text="💾 Guardar Usuario", command=self._procesar_guardado)
+        self.btn_guardar.pack(fill="x", pady=3)
         
-        self.tabla.column("ID", width=50)
-        self.tabla.column("Nombre", width=150)
-        self.tabla.column("Precio", width=100)
-        self.tabla.column("Stock", width=100)
-        
-        self.tabla.pack(fill="both", expand=True, padx=10, pady=10)
-        
-        # Cargar datos iniciales en la tabla
-        self.actualizar_tabla()
+        self.btn_eliminar = ttk.Button(frame_form, text="❌ Eliminar Selección", command=self._procesar_eliminacion)
+        self.btn_eliminar.pack(fill="x", pady=3)
 
-    def registrar_producto(self):
-        id_prod = self.txt_id.get()
-        nombre = self.txt_nombre.get()
-        precio = self.txt_precio.get()
-        stock = self.txt_stock.get()
+        # --- PANEL DERECHO: Tabla Treeview ---
+        frame_tabla = ttk.LabelFrame(self.frame_principal, text=" Personal del Restaurante ", padding=10)
+        frame_tabla.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        frame_tabla.columnconfigure(0, weight=1)
+        frame_tabla.rowconfigure(0, weight=1)
+
+        columnas = ("user", "rol", "estado")
+        self.tree = ttk.Treeview(frame_tabla, columns=columnas, show="headings")
+        self.tree.heading("user", text="Nombre de Usuario")
+        self.tree.heading("rol", text="Rol del Sistema")
+        self.tree.heading("estado", text="Estado")
         
-        if not id_prod or not nombre or not precio or not stock:
-            messagebox.showerror("Error", "Por favor completa todos los campos")
+        self.tree.column("user", width=150, anchor="w")
+        self.tree.column("rol", width=120, anchor="center")
+        self.tree.column("estado", width=100, anchor="center")
+        self.tree.grid(row=0, column=0, sticky="nsew")
+
+        # ==========================================
+        #  IMPLEMENTACIÓN OBLIGATORIA DE EVENTOS
+        # ==========================================
+        self.tree.bind("<<TreeviewSelect>>", self._callback_tabla_seleccion)
+        self.txt_username.bind("<Return>", self._callback_tecla_enter)
+        self.cb_rol.bind("<<ComboboxSelected>>", self._callback_cambio_rol)
+        self.parent.bind("<Escape>", lambda e: self._limpiar_formulario())
+
+    def _refrescar_tabla(self):
+        for fila in self.tree.get_children():
+            self.tree.delete(fila)
+        for u in self.servicio.obtener_usuarios():
+            estado_txt = "Activo" if u.activo else "Inactivo"
+            self.tree.insert("", "end", iid=u.username, values=(u.username, u.rol, estado_txt))
+
+    # --- CALLBACKS (MANEJO DE EVENTOS) ---
+    def _callback_tabla_seleccion(self, event):
+        seleccion = self.tree.selection()
+        if not seleccion:
             return
+        valores = self.tree.item(seleccion, "values")
+        if valores:
+            self.txt_username.configure(state="normal")
+            self.txt_username.delete(0, tk.END)
+            self.txt_username.insert(0, valores[0])
+            self.txt_username.configure(state="disabled") # Bloquea ID en edición
             
-        nuevo_producto = {
-            "nombre": nombre,
-            "precio": float(precio),
-            "stock": int(stock)
-        }
+            self.cb_rol.set(valores[1])
+            self.var_activo.set(valores[2] == "Activo")
+
+    def _callback_tecla_enter(self, event):
+        self.cb_rol.focus_set()
+
+    def _callback_cambio_rol(self, event):
+        print(f"[Log Eventos] Se modificó el rol a: {self.cb_rol.get()}")
+
+    def _limpiar_formulario(self):
+        self.txt_username.configure(state="normal")
+        self.txt_username.delete(0, tk.END)
+        self.cb_rol.set("")
+        self.var_activo.set(True)
+        if self.tree.selection():
+            self.tree.selection_remove(self.tree.selection())
+        self.txt_username.focus_set()
+
+    # --- LÓGICA DE PROCESAMIENTO ---
+    def _procesar_guardado(self):
+        username = self.txt_username.get().strip()
+        rol = self.cb_rol.get()
+        activo = self.var_activo.get()
+
+        if not username or not rol:
+            messagebox.showwarning("Atención", "Por favor completa todos los campos.")
+            return
+
+        if str(self.txt_username["state"]) == "disabled":
+            exito, msg = self.servicio.actualizar_usuario(username, rol, activo)
+        else:
+            exito, msg = self.servicio.registrar_usuario(username, rol, activo)
+
+        if exito:
+            messagebox.showinfo("Éxito", msg)
+            self._limpiar_formulario()
+            self._refrescar_tabla()
+        else:
+            messagebox.showerror("Error", msg)
+
+    def _procesar_eliminacion(self):
+        seleccion = self.tree.selection()
+        if not seleccion:
+            messagebox.showwarning("Atención", "Selecciona un usuario de la lista.")
+            return
         
-        try:
-            # Intentamos guardar usando el servicio si está disponible
-            if hasattr(self.servicio, 'guardar_producto'):
-                self.servicio.guardar_producto(nuevo_producto)
+        username = seleccion[0]
+        if messagebox.askyesno("Confirmar", f"¿Deseas eliminar al usuario '{username}'?"):
+            exito, msg = self.servicio.eliminar_usuario(username)
+            if exito:
+                messagebox.showinfo("Eliminado", msg)
+                self._limpiar_formulario()
+                self._refrescar_tabla()
             else:
-                # Guardado directo en productos.json por seguridad
-                ruta = "datos/productos.json"
-                os.makedirs("datos", exist_ok=True)
-                if os.path.exists(ruta):
-                    with open(ruta, "r", encoding="utf-8") as f:
-                        datos = json.load(f)
-                else:
-                    datos = []
-                datos.append(nuevo_producto)
-                with open(ruta, "w", encoding="utf-8") as f:
-                    json.dump(datos, f, indent=4, ensure_ascii=False)
-                    
-            messagebox.showinfo("Éxito", "Producto registrado correctamente")
-            self.limpiar_campos()
-            self.actualizar_tabla()
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo guardar: {e}")
-
-    def limpiar_campos(self):
-        self.txt_id.delete(0, tk.END)
-        self.txt_nombre.delete(0, tk.END)
-        self.txt_precio.delete(0, tk.END)
-        self.txt_stock.delete(0, tk.END)
-
-    def actualizar_tabla(self):
-        for fila in self.tabla.get_children():
-            self.tabla.delete(fila)
-            
-        ruta = "datos/productos.json"
-        if os.path.exists(ruta):
-            try:
-                with open(ruta, "r", encoding="utf-8") as f:
-                    datos = json.load(f)
-                    for idx, prod in enumerate(datos):
-                        self.tabla.insert("", "end", values=(idx+1, prod.get("nombre"), prod.get("precio"), prod.get("stock")))
-            except:
-                pass
+                messagebox.showerror("Error", msg)
